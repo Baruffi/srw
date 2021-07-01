@@ -1,0 +1,4 @@
+port = 9999
+folder = "D:/Documents/GitHub/srw/server/local"
+prefix = "PREFIX"
+filesize = 512

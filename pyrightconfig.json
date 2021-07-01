@@ -1,0 +1,14 @@
+{
+  "executionEnvironments": [
+    {
+      "root": "client",
+      "pythonVersion": "3.9",
+      "pythonPlatform": "Windows"
+    },
+    {
+      "root": "server",
+      "pythonVersion": "3.9",
+      "pythonPlatform": "Windows"
+    }
+  ]
+}
