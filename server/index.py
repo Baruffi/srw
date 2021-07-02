@@ -43,7 +43,7 @@ def open_connections():
             connection, data = sockethandler.write(s)
             if data:
                 filehandler.store(connection, data)
-                if len(filehandler.content[connection]) >= config['filesize']:
+                if filehandler.content[connection].qsize() >= config['filesize']:
                     filehandler.write(connection)
             else:
                 filehandler.write(connection)

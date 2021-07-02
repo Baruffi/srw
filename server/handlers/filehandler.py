@@ -1,4 +1,5 @@
 import os
+import queue
 import time
 
 
@@ -8,23 +9,16 @@ class FileHandler:
         self.folder = folder
         self.prefix = prefix
         self.size = size
-        self.content = {}
+        self.content: dict[str, queue.Queue] = {}
 
     def store(self, current, data):
-        if current in self.content:
-            print(f'{data=}')
-            self.content[current] += data
-        else:
-            self.content[current] = data
-            print(f'New data: {data}')
-        # self.content[current] = self.content.get(current, b'') + data
+        if current not in self.content:
+            self.content[current] = queue.Queue()
+
+        self.content[current].put(data)
 
     def write(self, current):
         if current not in self.content:
-            raise RuntimeError(
-                f'Tentativa de escrever em {current} sem realizar nenhum store.')
-
-        if not self.content[current]:
             return
 
         path = f'{self.folder}/{current}'
@@ -32,15 +26,26 @@ class FileHandler:
         if not os.path.isdir(path):
             os.mkdir(path)
 
-        self.__write(current, path)
+        message = self.content[current].get_nowait()
 
-    def __write(self, current, path, sufix=0):
-        content = self.content[current]
+        while ...:
+            try:
+                next_chunk = self.content[current].get_nowait()
+                message += next_chunk
+            except queue.Empty:
+                break
+
+        print(f'{message=}')
+
+        self.__write(message, path)
+
+        del self.content[current]
+
+    def __write(self, content, path, sufix=0):
         left, right = content[:self.size], content[self.size:]
-        self.content[current] = right
 
         with open(f'{path}/{self.prefix}_{int(time.time())}_{sufix}', 'wb') as file:
             file.write(left)
 
         if len(right):
-            self.__write(current, path, sufix + 1)
+            self.__write(right, path, sufix + 1)
