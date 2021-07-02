@@ -14,28 +14,34 @@ server.setblocking(False)
 server.bind((socket.gethostname(), config['port']))
 server.listen(5)
 
-print(f'Open server socket on port: {config["port"]}')
+print(f'Aberto socket do servidor na porta: {config["port"]}')
 
-inputs = [server]
-outputs = []
+inputs = set([server])
+outputs = set()
 message_queues = {}
 
 sockethandler = SocketHandler(inputs, outputs, message_queues)
-filehandler = FileHandler(config["folder"], config["prefix"], config["filesize"])
+filehandler = FileHandler(
+    config['folder'], config['prefix'], config['filesize'])
 
 while inputs:
-    readable, writable, exceptional = sockethandler.select()
+    readable, writable, exceptional = sockethandler.select(
+        config['timeout'], server)
 
     for s in readable:
         if s is server:
-            print('Nova conexão')
             sockethandler.accept(s)
         else:
             sockethandler.read(s)
 
     for s in writable:
-        sockethandler.write(s)
+        connection, data = sockethandler.write(s)
+        if data:
+            filehandler.store(connection, data)
+            if len(filehandler.content[connection]) >= config['filesize']:
+                filehandler.write()
+        else:
+            filehandler.write()
 
     for s in exceptional:
-        print('Novo erro')
         sockethandler.remove(s)

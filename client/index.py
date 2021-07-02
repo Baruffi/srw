@@ -9,6 +9,14 @@ config = toml.load(config_path)
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 s.connect((socket.gethostname(), config['port']))
-s.send(b'test sent')
-print(s.recv(1024))
+
+print(f'Conectado socket do cliente na porta: {config["port"]}')
+
+# s.recv(1024)
+
+for i in range(100):
+    s.send(bytes(f'test {i}\n', encoding='utf-8'))
+
+# s.recv(1024)
+
 s.close()
