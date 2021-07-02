@@ -8,35 +8,39 @@ class FileHandler:
         self.folder = folder
         self.prefix = prefix
         self.size = size
-        self.current = None
         self.content = {}
 
     def store(self, current, data):
-        self.current = current
-        self.content[current] = data + self.content.get(current, b'')
+        if current in self.content:
+            print(f'{data=}')
+            self.content[current] += data
+        else:
+            self.content[current] = data
+            print(f'New data: {data}')
+        # self.content[current] = self.content.get(current, b'') + data
 
-    def write(self):
-        if self.current not in self.content:
+    def write(self, current):
+        if current not in self.content:
             raise RuntimeError(
-                f'Tentativa de escrever em {self.current} sem realizar nenhum store.')
+                f'Tentativa de escrever em {current} sem realizar nenhum store.')
 
-        if not self.content[self.current]:
+        if not self.content[current]:
             return
 
-        path = f'{self.folder}/{self.current}'
+        path = f'{self.folder}/{current}'
 
         if not os.path.isdir(path):
             os.mkdir(path)
 
-        self.__write(path)
+        self.__write(current, path)
 
-    def __write(self, path: str, sufix=0):
-        content = self.content[self.current]
+    def __write(self, current, path, sufix=0):
+        content = self.content[current]
         left, right = content[:self.size], content[self.size:]
-        self.content[self.current] = right
+        self.content[current] = right
 
         with open(f'{path}/{self.prefix}_{int(time.time())}_{sufix}', 'wb') as file:
             file.write(left)
 
         if len(right):
-            self.__write(path, sufix + 1)
+            self.__write(current, path, sufix + 1)
