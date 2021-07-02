@@ -19,9 +19,25 @@ class FileHandler:
         self.__write(message, path)
 
     def __write(self, content, path, sufix=0):
-        left, right = content[:self.size], content[self.size:]
+        current_time = int(time.time())
+        filepath = f'{path}/{self.prefix}_{current_time}_{sufix}'
+        size = self.size
+        mode = 'wb'
 
-        with open(f'{path}/{self.prefix}_{int(time.time())}_{sufix}', 'wb') as file:
+        while os.path.isfile(filepath):
+            filesize = os.path.getsize(filepath)
+            if filesize >= self.size:
+                sufix += 1
+                pre, mid, _ = tuple(filepath.split('_'))
+                filepath = f'{pre}_{mid}_{sufix}'
+            else:
+                size = self.size - filesize
+                mode = 'ab'
+                break
+
+        left, right = content[:size], content[size:]
+
+        with open(filepath, mode) as file:
             file.write(left)
 
         if len(right):

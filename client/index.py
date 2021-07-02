@@ -14,8 +14,14 @@ print(f'Conectado socket do cliente na porta: {config["port"]}')
 
 # s.recv(1024)
 
-for i in range(100):
-    s.send(bytes(f'test {i}\n', encoding='utf-8'))
+fullstring = b''
+
+for i in range(1000):
+    new_string = bytes(f'test {i}\n', encoding='utf-8')
+    fullstring += new_string
+    s.send(new_string)
+
+s.sendall(fullstring)
 
 # s.recv(1024)
 
