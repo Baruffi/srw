@@ -35,8 +35,6 @@ class FileHandler:
             except queue.Empty:
                 break
 
-        print(f'{message=}')
-
         self.__write(message, path)
 
         del self.content[current]
