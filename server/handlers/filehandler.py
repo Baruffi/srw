@@ -9,35 +9,14 @@ class FileHandler:
         self.folder = folder
         self.prefix = prefix
         self.size = size
-        self.content: dict[str, queue.Queue] = {}
 
-    def store(self, current, data):
-        if current not in self.content:
-            self.content[current] = queue.Queue()
-
-        self.content[current].put(data)
-
-    def write(self, current):
-        if current not in self.content:
-            return
-
+    def write(self, current, message):
         path = f'{self.folder}/{current}'
 
         if not os.path.isdir(path):
             os.mkdir(path)
 
-        message = self.content[current].get_nowait()
-
-        while ...:
-            try:
-                next_chunk = self.content[current].get_nowait()
-                message += next_chunk
-            except queue.Empty:
-                break
-
         self.__write(message, path)
-
-        del self.content[current]
 
     def __write(self, content, path, sufix=0):
         left, right = content[:self.size], content[self.size:]

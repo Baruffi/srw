@@ -1,6 +1,5 @@
 import os
 import socket
-from concurrent.futures import ThreadPoolExecutor
 
 import toml
 
@@ -21,38 +20,22 @@ inputs = set([server])
 outputs = set()
 message_queues = {}
 
-sockethandler = SocketHandler(inputs, outputs, message_queues)
 filehandler = FileHandler(
     config['folder'], config['prefix'], config['filesize'])
+sockethandler = SocketHandler(inputs, outputs, message_queues, filehandler)
 
+while sockethandler.inputs:
+    readable, writable, exceptional = sockethandler.select(
+        config['timeout'], server)
 
-def open_connections():
-    global config, server, inputs, sockethandler, filehandler
+    for s in readable:
+        if s is server:
+            sockethandler.accept(s)
+        else:
+            sockethandler.read(s)
 
-    while sockethandler.inputs:
-        readable, writable, exceptional = sockethandler.select(
-            config['timeout'], server)
+    for s in writable:
+        sockethandler.write(s)
 
-        for s in readable:
-            if s is server:
-                sockethandler.accept(s)
-            else:
-                sockethandler.read(s)
-
-        for s in writable:
-            connection, data = sockethandler.write(s)
-            if data:
-                filehandler.store(connection, data)
-                if filehandler.content[connection].qsize() >= config['filesize']:
-                    filehandler.write(connection)
-            else:
-                filehandler.write(connection)
-
-        for s in exceptional:
-            sockethandler.remove(s)
-
-
-with ThreadPoolExecutor(max_workers=3) as tpe:
-    tpe.submit(open_connections)
-    tpe.submit(open_connections)
-    tpe.submit(open_connections)
+    for s in exceptional:
+        sockethandler.remove(s)
