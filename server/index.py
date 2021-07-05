@@ -18,10 +18,11 @@ def start_server():
             readable = sockethandler.select()
 
             for s in readable:
-                if s is server and len(sockethandler.inputs) <= MAX_CONNECTIONS:
-                    c = sockethandler.accept(s)
+                if s is server:
+                    if len(sockethandler.inputs) <= MAX_CONNECTIONS:
+                        c = sockethandler.accept(s)
 
-                    tpe.submit(consume, c)
+                        tpe.submit(consume, c)
                 else:
                     if (data := sockethandler.read(s)):
                         tpe.submit(feed, s, data)
