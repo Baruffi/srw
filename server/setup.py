@@ -1,5 +1,6 @@
 import socket
-from concurrent.futures import ThreadPoolExecutor
+from queue import Queue
+from typing import Any
 
 from handlers.filehandler import FileHandler
 from handlers.queuehandler import QueueHandler
@@ -18,35 +19,41 @@ def setup_server():
     return server
 
 
-def setup_objects(inputs: set, message_queues: dict, tpe: ThreadPoolExecutor):
+def setup_sockethandler(inputs: set[socket.socket]):
+    sockethandler = SocketHandler(inputs, TIMEOUT)
+
+    return sockethandler
+
+
+def setup_functions(message_queues: dict[Any, Queue]):
     filehandler = FileHandler(FOLDER, PREFIX, FILESIZE)
     queuehandler = QueueHandler(message_queues, TIMEOUT)
-    sockethandler = SocketHandler(
-        inputs, TIMEOUT, lambda s: tpe.submit(flush, s))
 
     def feed(c: socket.socket, data: bytes):
         try:
             queuehandler.feed(c, data)
         except Exception as e:
-            print(f'Erro desconhecido ao alimentar: {e}')
+            print(f'Erro ao alimentar: {e}')
 
     def consume(c: socket.socket):
         try:
             socket_ip, _ = c.getsockname()
 
+            queuehandler.new(c)
+
             for message in queuehandler.consume(c):
                 try:
                     filehandler.write(socket_ip, message)
                 except Exception as e:
-                    print(f'Erro desconhecido ao escrever: {e}')
+                    print(f'Erro ao escrever: {e}')
         except Exception as e:
-            print(f'Erro desconhecido ao consumir: {e}')
+            print(f'Erro ao consumir: {e}')
 
     def flush(c: socket.socket):
         try:
             queuehandler.message_queues[c].join()
             queuehandler.remove(c)
         except Exception as e:
-            print(f'Erro desconhecido ao descargar: {e}')
+            print(f'Erro ao descargar: {e}')
 
-    return filehandler, queuehandler, sockethandler, feed, consume, flush
+    return feed, consume, flush
