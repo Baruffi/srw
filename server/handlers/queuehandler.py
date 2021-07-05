@@ -1,8 +1,9 @@
-from queue import Empty, Queue
+from queue import Empty, Full, Queue
 from typing import Any
 
 
 class QueueHandler:
+
     def __init__(self, message_queues: dict[Any, Queue], timeout: float):
         self.message_queues = message_queues
         self.timeout = timeout
@@ -23,7 +24,10 @@ class QueueHandler:
         del self.message_queues[queue_key]
 
     def feed(self, queue_key, data):
-        self.message_queues[queue_key].put(data, timeout=self.timeout)
+        try:
+            self.message_queues[queue_key].put(data, timeout=self.timeout)
+        except Full:
+            print(f'Queue {queue_key} cheio!')
 
     def consume(self, queue_key):
         while queue_key in self.message_queues:
@@ -32,7 +36,7 @@ class QueueHandler:
                 self.message_queues[queue_key].task_done()
             except Empty:
                 print(
-                    f'Queue timed out on {self.message_queues[queue_key].unfinished_tasks} unfinished tasks!')
+                    f'Queue {queue_key} vazio com {self.message_queues[queue_key].unfinished_tasks} tarefas não finalizadas!')
                 break
 
     def __iter__(self):

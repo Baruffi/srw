@@ -3,10 +3,12 @@ from socket import socket
 
 
 class SocketHandler:
-    def __init__(self, inputs: set, timeout: float):
+
+    def __init__(self, inputs: set[socket], timeout: float, remove_callback: lambda s: None):
         self.inputs = set(inputs)
         self.permanent = set(inputs)
         self.timeout = timeout
+        self.remove_callback = remove_callback
 
     def accept(self, s: socket):
         connection, addr = s.accept()
@@ -44,8 +46,11 @@ class SocketHandler:
         socket_ip, _ = s.getsockname()
 
         self.inputs.remove(s)
+        s.close()
 
-        print(f'Conexão {socket_ip} descartada pelo servidor. Motivo: {reason}')
+        print(f'Conexão {socket_ip} fechada pelo servidor. Motivo: {reason}')
+
+        self.remove_callback(s)
 
     def __iter__(self):
         for i in self.inputs:

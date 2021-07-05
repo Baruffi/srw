@@ -1,16 +1,15 @@
 import os
-import queue
-import time
+from time import time
 
 
 class FileHandler:
 
-    def __init__(self, folder, prefix, size):
+    def __init__(self, folder: str, prefix: str, size: int):
         self.folder = folder
         self.prefix = prefix
         self.size = size
 
-    def write(self, current, message):
+    def write(self, current: str, message: str):
         path = f'{self.folder}/{current}'
 
         if not os.path.isdir(path):
@@ -18,8 +17,8 @@ class FileHandler:
 
         self.__write(message, path)
 
-    def __write(self, content, path, sufix=0):
-        current_time = int(time.time())
+    def __write(self, content: str, path: str, sufix: int = 0):
+        current_time = int(time())
         filepath = f'{path}/{self.prefix}_{current_time}_{sufix}'
         size = self.size
         mode = 'wb'
