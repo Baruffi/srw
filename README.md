@@ -2,4 +2,4 @@
 
 ## TODO
 
-Adicionar docker pelo menos para o cliente, para simular multiplos usuarios
+- Remover requirements.txt duplicados

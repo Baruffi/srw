@@ -20,9 +20,9 @@ def start_server():
             for s in readable:
                 if s is server:
                     if len(sockethandler.inputs) <= MAX_CONNECTIONS:
-                        c = sockethandler.accept(s)
+                        c, client_ip = sockethandler.accept(s)
 
-                        tpe.submit(consume, c)
+                        tpe.submit(consume, c, client_ip)
                 else:
                     if (data := sockethandler.read(s)):
                         tpe.submit(feed, s, data)

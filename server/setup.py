@@ -29,19 +29,17 @@ def setup_functions(message_queues: dict[Any, Queue]):
     filehandler = FileHandler(FOLDER, PREFIX, FILESIZE)
     queuehandler = QueueHandler(message_queues, TIMEOUT)
 
-    def feed(c: socket.socket, data: bytes):
+    def feed(s: socket.socket, data: bytes):
         try:
-            queuehandler.feed(c, data)
+            queuehandler.feed(s, data)
         except Exception as e:
             print(f'Erro ao alimentar: {e}')
 
-    def consume(c: socket.socket):
+    def consume(s: socket.socket, socket_ip: str):
         try:
-            socket_ip, _ = c.getsockname()
+            queuehandler.new(s)
 
-            queuehandler.new(c)
-
-            for message in queuehandler.consume(c):
+            for message in queuehandler.consume(s):
                 try:
                     filehandler.write(socket_ip, message)
                 except Exception as e:
@@ -49,10 +47,10 @@ def setup_functions(message_queues: dict[Any, Queue]):
         except Exception as e:
             print(f'Erro ao consumir: {e}')
 
-    def flush(c: socket.socket):
+    def flush(s: socket.socket):
         try:
-            queuehandler.message_queues[c].join()
-            queuehandler.remove(c)
+            queuehandler.message_queues[s].join()
+            queuehandler.remove(s)
         except Exception as e:
             print(f'Erro ao descargar: {e}')
 

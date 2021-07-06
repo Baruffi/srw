@@ -1,5 +1,6 @@
 import select
 from socket import socket
+from time import time
 
 
 class SocketHandler:
@@ -8,6 +9,7 @@ class SocketHandler:
         self.inputs = set(inputs)
         self.permanent = set(inputs)
         self.timeout = timeout
+        self.keep_alive = {}
         self.removed = set()
 
     def accept(self, s: socket):
@@ -20,7 +22,7 @@ class SocketHandler:
 
         self.inputs.add(connection)
 
-        return connection
+        return connection, socket_ip
 
     def read(self, s: socket):
         data = s.recv(4096)
@@ -34,8 +36,16 @@ class SocketHandler:
         readable, _, _ = select.select(
             self.inputs, [], self.inputs, self.timeout)
 
-        timed_out = [
-            s for s in self.inputs if s not in self.permanent and s not in readable]
+        current_time = time()
+
+        for s in readable:
+            if s not in self.permanent:
+                self.keep_alive[s] = current_time
+
+        print(f'Keep alive: {len(self.keep_alive)}')
+
+        timed_out = [s for s in self.keep_alive if current_time -
+                     self.keep_alive[s] >= self.timeout]
 
         for s in timed_out:
             self.remove(s, 'Timeout.')
@@ -43,12 +53,12 @@ class SocketHandler:
         return readable
 
     def remove(self, s: socket, reason: str):
-        socket_ip, _ = s.getsockname()
-
         self.inputs.remove(s)
+        if s in self.keep_alive:
+            del self.keep_alive[s]
         s.close()
 
-        print(f'Conexão {socket_ip} fechada pelo servidor. Motivo: {reason}')
+        print(f'Conexão fechada pelo servidor. Motivo: {reason}')
 
         self.removed.add(s)
 
