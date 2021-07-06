@@ -35,13 +35,14 @@ def setup_functions(message_queues: dict[Any, Queue]):
         except Exception as e:
             print(f'Erro ao alimentar: {e}')
 
-    def consume(s: socket.socket, socket_ip: str):
+    def consume(s: socket.socket, socket_addr: str):
         try:
+            suffix = 0
             queuehandler.new(s)
 
             for message in queuehandler.consume(s):
                 try:
-                    filehandler.write(socket_ip, message)
+                    suffix = filehandler.write(socket_addr, message, 0, suffix)
                 except Exception as e:
                     print(f'Erro ao escrever: {e}')
         except Exception as e:
