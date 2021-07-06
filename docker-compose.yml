@@ -21,6 +21,7 @@ services:
     environment:
       - "SERVER_PORT=5000"
       - "SERVER_HOST=server"
+      - "FREEZE_EARLY=1"
     depends_on:
       - server
   client3:
@@ -28,5 +29,14 @@ services:
     environment:
       - "SERVER_PORT=5000"
       - "SERVER_HOST=server"
+      - "FREEZE_LATE=1"
+    depends_on:
+      - server
+  client4:
+    build: client
+    environment:
+      - "SERVER_PORT=5000"
+      - "SERVER_HOST=server"
+      - "TOTAL_MESSAGES=10"
     depends_on:
       - server
